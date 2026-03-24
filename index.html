@@ -37,9 +37,6 @@
         .btn-white { background-color: #fff; color: #000; }
         .btn-white:hover { background-color: #ddd; }
         
-        .btn-yellow { background-color: #ffcc00; color: #000; margin-top: 15px; }
-        .btn-yellow:hover { background-color: #e6b800; }
-        
         .btn-copy { background-color: #333; color: #fff; width: 100%; max-width: 300px; margin-top: 10px; }
         .btn-copy:hover { background-color: #555; }
 
@@ -58,20 +55,13 @@
         }
         
         #timer { font-size: 20px; font-weight: bold; color: #ff00ff; margin-top: 20px; }
-        .error-text { color: #ff5555; font-size: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="view-blocked" class="view">
-        <h1 class="error-text">ACCESS DENIED</h1>
-        <p>This web is blocked. Why don't you do the Linkvertise?</p>
-        <button class="btn-yellow" onclick="window.location.href='https://link-hub.net/3415465/NtjRB7k2dhgP'">LINKVERTISE</button>
-    </div>
-
     <div id="view-main" class="view">
         <h1>Satured Hub</h1>
-        <p>You have successfully passed the verification.</p>
+        <p>Welcome. Click the button below to generate your key.</p>
         <button class="btn-white" onclick="generateKey()">GET KEY</button>
     </div>
 
@@ -84,7 +74,7 @@
     </div>
 
     <script>
-        // Tu lista enorme de Keys
+        // Tu lista de Keys
         const keysList = [
             "Satured-key-SuRP5ASSRec9hvCd", "Satured-key-V02kpm9yBzBQZATT", "Satured-key-m3G4N42Mno47hJ0c", "Satured-key-DZdYEsxz8XZxYKqG", 
             "Satured-key-RvO3FdNSUPGrz2h2", "Satured-key-qhdCYufSPZYS3BKg", "Satured-key-KoK6z5HwPwJfC8Sb", "Satured-key-p06ZUwajjLPLOSHh",
@@ -113,7 +103,6 @@
             "Satured-key-kWnbmK805jYai2K9", "Satured-key-iEqyFLyrsVFZ77e5", "Satured-key-MaZuivmUzwIvWX47", "Satured-key-aAQB0jHrUO2ChlmS",
             "Satured-key-eRdaRlcxa5K572KO", "Satured-key-eYR3oyIQuwWHADPD", "Satured-key-KWQ2p9MFrru8Yp0N", "Satured-key-h1hTbPZo7jnxz3kh",
             "Satured-key-0j78kYnC3jnuyXdR", "Satured-key-k82rpEcQQ3yOJfkZ", "Satured-key-KWbsVZMJdFuYRKkx", "Satured-key-mieS5ND4Uu1oPJcZ"
-            // (He incluido 100 de tus keys, puedes añadir el resto aquí mismo separadas por coma si quieres todas, pero 100 son suficientes para hacerlo muy aleatorio)
         ];
 
         // Función para cambiar de vistas
@@ -122,29 +111,24 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // Lógica de inicio
+        // Lógica de inicio (Verifica si ya hay una key guardada)
         function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isVerified = urlParams.get('verified') === 'true';
             const savedData = JSON.parse(localStorage.getItem('satured_key_data'));
             const currentTime = new Date().getTime();
 
-            // 1. Si ya tiene una key y no ha expirado, mostrarla directo
+            // Si ya tiene una key y no ha expirado, mostrarla directo
             if (savedData && savedData.expireTime > currentTime) {
+                // Al cargar con key guardada, también ponemos un ID falso en la URL
+                const randomID = Math.random().toString(36).substring(2, 15);
+                window.history.replaceState("object or string", "Title", "?id=" + randomID);
                 showKeyView(savedData.key, savedData.expireTime);
-                return;
-            }
-
-            // 2. Si no tiene key, verificar si pasó el linkvertise
-            if (isVerified) {
-                showView('view-main');
             } else {
-                // Si entró directo y no tiene key, se bloquea
-                showView('view-blocked');
+                // Si no tiene key, muestra el botón principal
+                showView('view-main');
             }
         }
 
-        // Cuando tocan el botón blanco GET KEY
+        // Cuando tocan el botón GET KEY
         function generateKey() {
             // Elegir key aleatoria
             const randomKey = keysList[Math.floor(Math.random() * keysList.length)];
@@ -177,11 +161,21 @@
             const copyText = document.getElementById('key-textbox');
             copyText.select();
             copyText.setSelectionRange(0, 99999); // Para móviles
-            document.execCommand("copy");
             
-            const btn = document.querySelector('.btn-copy');
-            btn.innerText = "COPIED!";
-            setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+            try {
+                // API moderna del portapapeles
+                navigator.clipboard.writeText(copyText.value).then(() => {
+                    const btn = document.querySelector('.btn-copy');
+                    btn.innerText = "COPIED!";
+                    setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+                });
+            } catch (err) {
+                // Fallback para navegadores antiguos
+                document.execCommand("copy");
+                const btn = document.querySelector('.btn-copy');
+                btn.innerText = "COPIED!";
+                setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+            }
         }
 
         // Sistema del contador regresivo 24H
@@ -216,5 +210,4 @@
         window.onload = init;
     </script>
 </body>
-  </html>
-  
+</html>
