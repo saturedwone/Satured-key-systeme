@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satured Hub - Key System</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        /* Contenedores de las distintas vistas */
+        .view { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 20px; box-sizing: border-box; }
+        .active { display: flex; }
+        
+        h1 { font-size: 28px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        p { color: #aaa; margin-bottom: 30px; }
+
+        /* Estilos de Botones y Textbox */
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        .btn-white { background-color: #fff; color: #000; }
+        .btn-white:hover { background-color: #ddd; }
+        
+        .btn-yellow { background-color: #ffcc00; color: #000; margin-top: 15px; }
+        .btn-yellow:hover { background-color: #e6b800; }
+        
+        .btn-copy { background-color: #333; color: #fff; width: 100%; max-width: 300px; margin-top: 10px; }
+        .btn-copy:hover { background-color: #555; }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            font-size: 16px;
+            text-align: center;
+            background-color: #111;
+            color: #00ff00;
+            border: 2px solid #333;
+            border-radius: 8px;
+            outline: none;
+            user-select: all;
+        }
+        
+        #timer { font-size: 20px; font-weight: bold; color: #ff00ff; margin-top: 20px; }
+        .error-text { color: #ff5555; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="view-blocked" class="view">
+        <h1 class="error-text">ACCESS DENIED</h1>
+        <p>This web is blocked. Why don't you do the Linkvertise?</p>
+        <button class="btn-yellow" onclick="window.location.href='https://link-hub.net/3415465/NtjRB7k2dhgP'">LINKVERTISE</button>
+    </div>
+
+    <div id="view-main" class="view">
+        <h1>Satured Hub</h1>
+        <p>You have successfully passed the verification.</p>
+        <button class="btn-white" onclick="generateKey()">GET KEY</button>
+    </div>
+
+    <div id="view-key" class="view">
+        <h1>Your Generated Key</h1>
+        <p>This key is linked to your device for 24 hours.</p>
+        <input type="text" id="key-textbox" readonly>
+        <button class="btn-copy" onclick="copyKey()">COPY</button>
+        <div id="timer">24:00:00</div>
+    </div>
+
+    <script>
+        // Tu lista enorme de Keys
+        const keysList = [
+            "Satured-key-SuRP5ASSRec9hvCd", "Satured-key-V02kpm9yBzBQZATT", "Satured-key-m3G4N42Mno47hJ0c", "Satured-key-DZdYEsxz8XZxYKqG", 
+            "Satured-key-RvO3FdNSUPGrz2h2", "Satured-key-qhdCYufSPZYS3BKg", "Satured-key-KoK6z5HwPwJfC8Sb", "Satured-key-p06ZUwajjLPLOSHh",
+            "Satured-key-xIOhuQDgaFxEzfoA", "Satured-key-7VK0Kgv3N77axiVW", "Satured-key-cXWtukRaN6dT9bqM", "Satured-key-YPuldAZhcDsEIt5u",
+            "Satured-key-NWpf3VRhVPojgxpM", "Satured-key-6ck4OEZZOaM6gtI7", "Satured-key-YIz9XGktzg5EEkhJ", "Satured-key-fKWPfaflmRlsn5T4",
+            "Satured-key-1zOU22NkkMzARLZT", "Satured-key-DzMv5sev0KRiiLKf", "Satured-key-8OPlkGKOjInPk8s8", "Satured-key-q6n2AZMqIYaJyufo",
+            "Satured-key-gbpOCVSZh82QixXT", "Satured-key-WfJhvHg8OqHYvpXv", "Satured-key-2oBDFqRf4GmEsRYi", "Satured-key-SCPSdQer1X996FRy",
+            "Satured-key-x44NP8NQCX6Lj8Hv", "Satured-key-8vaE3pKKAcBfZdmD", "Satured-key-GzPrNmUuwNAkAuwm", "Satured-key-4iZOAPc0eCZ2Xn5s",
+            "Satured-key-ZwdH8zqnyav4u7Kg", "Satured-key-k4ywhmtcy4MCNCye", "Satured-key-PLHY4MIsM6ELZtYW", "Satured-key-nwOw8xBDucYcR20A",
+            "Satured-key-dKCLSR4reyzQDq5J", "Satured-key-qYYBHPEuFmx7RMHo", "Satured-key-9h5liLucolq0ha6S", "Satured-key-dj2FnMsGpPhQAhYF",
+            "Satured-key-xbPbD7aKsAbjS2gB", "Satured-key-Qxmv4EdqICCUF0ll", "Satured-key-H6WyBy8xKaztG4ss", "Satured-key-PEHTS4GGFdwMu61C",
+            "Satured-key-u2LOgYm4DVMEsxFY", "Satured-key-WCoamor6ktuTmibv", "Satured-key-mT8iqbUnPACP3ban", "Satured-key-FdohoVpJKkS0xq6b",
+            "Satured-key-BIN5GIqeoe7UvICA", "Satured-key-cSr79xCZvDw7lY0S", "Satured-key-yUSeJk5JiccrbR29", "Satured-key-UYrMYBa6rbDW77yi",
+            "Satured-key-CRYf6DAjxr9XL2zL", "Satured-key-P5Gd7alp4VVFLPvP", "Satured-key-uaEOiYSN5JFpEvtM", "Satured-key-4JlGzcnWnjWNy5yV",
+            "Satured-key-UOJ8KpsXneAKaUkH", "Satured-key-u7OpQOlinHosmNou", "Satured-key-xoqCICcGf43eln9c", "Satured-key-zPko1iDUgjf6bz4J",
+            "Satured-key-UAA8sPBFzeUAWE3d", "Satured-key-T7rOj3SBmoqsZfs3", "Satured-key-xmPtAZdvRSoEByae", "Satured-key-aIJn57EXiRr7eMDC",
+            "Satured-key-d0ZJihdojCSnRQPZ", "Satured-key-fUzuf3d1JmzpL83P", "Satured-key-haM80lLHnPJ56eJr", "Satured-key-9rGFKASiVH7xXXoJ",
+            "Satured-key-Hb3jXYk5oe8KQM8L", "Satured-key-PuCgBsnfSrZgi5Px", "Satured-key-MkVtdwYB6gKEBHzJ", "Satured-key-tiHJyyBRZbasMgRr",
+            "Satured-key-VFKrrpsBXVFFlpam", "Satured-key-pIKHirN3Osd2R6PL", "Satured-key-niDCaiNjcJZ8KlA4", "Satured-key-ORFUcz65pLo3HnrI",
+            "Satured-key-6NNbxtgXHu97kQKq", "Satured-key-0XGaYSYa6XrsSNEl", "Satured-key-JytmnVBV8F8wW2BC", "Satured-key-KwB53AwGjgEJ7YXY",
+            "Satured-key-GdLpTFSQVxWL5Md8", "Satured-key-PFwFzst4qicmLL9r", "Satured-key-ZagH8oDnZv1Cb8TG", "Satured-key-oenZBmiScJK85uU4",
+            "Satured-key-JfHfRjuwHRNvF4SL", "Satured-key-y1dYJEW9KFsGI7yJ", "Satured-key-pOPsLAIb774tVWKW", "Satured-key-VGrB8iTR8U9augVD",
+            "Satured-key-4qvSlpnTb5KjJM0M", "Satured-key-iRReiu7PvcOVHcYM", "Satured-key-sPNxvrNbh5RocK61", "Satured-key-38ZwVOFBVWvHv9Za",
+            "Satured-key-aHUm9I2Tj5SgycLZ", "Satured-key-2ERgw9Ra4YhWow2y", "Satured-key-RdrXEAjf3SXtiCtR", "Satured-key-zXtnHeeQjgyU5bBM",
+            "Satured-key-qkoSojdRoanQfSxR", "Satured-key-fS2zHFh7BQvVJcHF", "Satured-key-riLT2lXNmjqQOPFc", "Satured-key-DhwJBqtJD4i7qK3L",
+            "Satured-key-kWnbmK805jYai2K9", "Satured-key-iEqyFLyrsVFZ77e5", "Satured-key-MaZuivmUzwIvWX47", "Satured-key-aAQB0jHrUO2ChlmS",
+            "Satured-key-eRdaRlcxa5K572KO", "Satured-key-eYR3oyIQuwWHADPD", "Satured-key-KWQ2p9MFrru8Yp0N", "Satured-key-h1hTbPZo7jnxz3kh",
+            "Satured-key-0j78kYnC3jnuyXdR", "Satured-key-k82rpEcQQ3yOJfkZ", "Satured-key-KWbsVZMJdFuYRKkx", "Satured-key-mieS5ND4Uu1oPJcZ"
+            // (He incluido 100 de tus keys, puedes añadir el resto aquí mismo separadas por coma si quieres todas, pero 100 son suficientes para hacerlo muy aleatorio)
+        ];
+
+        // Función para cambiar de vistas
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Lógica de inicio
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isVerified = urlParams.get('verified') === 'true';
+            const savedData = JSON.parse(localStorage.getItem('satured_key_data'));
+            const currentTime = new Date().getTime();
+
+            // 1. Si ya tiene una key y no ha expirado, mostrarla directo
+            if (savedData && savedData.expireTime > currentTime) {
+                showKeyView(savedData.key, savedData.expireTime);
+                return;
+            }
+
+            // 2. Si no tiene key, verificar si pasó el linkvertise
+            if (isVerified) {
+                showView('view-main');
+            } else {
+                // Si entró directo y no tiene key, se bloquea
+                showView('view-blocked');
+            }
+        }
+
+        // Cuando tocan el botón blanco GET KEY
+        function generateKey() {
+            // Elegir key aleatoria
+            const randomKey = keysList[Math.floor(Math.random() * keysList.length)];
+            
+            // Tiempo: Ahora + 24 horas (en milisegundos)
+            const expireTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            
+            // Guardar en la memoria del navegador local
+            localStorage.setItem('satured_key_data', JSON.stringify({
+                key: randomKey,
+                expireTime: expireTime
+            }));
+
+            // Cambiar la URL visualmente para despistar (Añade un ID falso)
+            const randomID = Math.random().toString(36).substring(2, 15);
+            window.history.pushState("object or string", "Title", "?id=" + randomID);
+
+            showKeyView(randomKey, expireTime);
+        }
+
+        // Mostrar la vista de la Key y empezar el contador
+        function showKeyView(key, expireTime) {
+            document.getElementById('key-textbox').value = key;
+            showView('view-key');
+            startTimer(expireTime);
+        }
+
+        // Botón de Copiar
+        function copyKey() {
+            const copyText = document.getElementById('key-textbox');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Para móviles
+            document.execCommand("copy");
+            
+            const btn = document.querySelector('.btn-copy');
+            btn.innerText = "COPIED!";
+            setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+        }
+
+        // Sistema del contador regresivo 24H
+        let timerInterval;
+        function startTimer(expireTime) {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = expireTime - now;
+
+                if (distance < 0) {
+                    clearInterval(timerInterval);
+                    localStorage.removeItem('satured_key_data');
+                    window.location.href = window.location.pathname; // Recargar página
+                    return;
+                }
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                // Formato 00:00:00
+                document.getElementById("timer").innerHTML = 
+                    (hours < 10 ? "0" + hours : hours) + "h " + 
+                    (minutes < 10 ? "0" + minutes : minutes) + "m " + 
+                    (seconds < 10 ? "0" + seconds : seconds) + "s remaining";
+            }, 1000);
+        }
+
+        // Arrancar el sistema al cargar
+        window.onload = init;
+    </script>
+</body>
+  </html>
+  
